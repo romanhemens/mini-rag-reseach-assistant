@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg
+*.egg-info/
+dist/
+build/
+*.log
+
+# Jupyter notebooks (if any)
+.ipynb_checkpoints
+
+# Environment
+.env
+venv/
+.envrc
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Gradio/Streamlit uploads/cache
+gradio_cached_examples/
+.streamlit/
+
+# VSCode
+.vscode/
+
+# FAISS / vector stores
+*.faiss
+*.pkl
+*.db
+
+# Other
+*.pdf
+*.csv
