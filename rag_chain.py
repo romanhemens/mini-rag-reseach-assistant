@@ -2,15 +2,18 @@
 from dotenv import load_dotenv
 load_dotenv
 
-from langchain.vectorstores import FAISS
-from langchain.embeddings import OpenAIEmbeddings
+import faiss
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatGroq
+from langchain_groq import ChatGroq
 import os
 
 def build_rag_chain(chunks):
-    embeddings = OpenAIEmbeddings()
-    db = FAISS.from_texts(chunks, embedding=embeddings)
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={"device": "cpu"}
+    )
+    db = faiss.from_texts(chunks, embedding=embeddings)
     retriever = db.as_retriever()
 
     llm = ChatGroq(
