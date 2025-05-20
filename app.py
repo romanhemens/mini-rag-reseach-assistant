@@ -13,8 +13,8 @@ def upload_pdf(file):
 
 def ask_question(question):
     if qa_chain:
-        response = qa_chain.run(question)
-        return response
+        response = qa_chain.invoke(question)
+        return response['result']
     else:
         return "Please upload a PDF first."
 
