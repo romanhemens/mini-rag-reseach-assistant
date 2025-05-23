@@ -21,7 +21,12 @@ def build_rag_chain(chunks):
     # Initialize the LLM with the API key and model name
     llm = ChatGroq(
         api_key=os.getenv("GROQ_API_KEY"),
-        model_name="llama3-70b-8192")
+        model_name="llama3-70b-8192",
+        temperature=0.1, #  For a research assistant, you want highly factual, precise, and consistent answers that stick strictly to the provided context.
+        top_p=0.9, #  This setting can help in generating more focused and relevant responses.
+        max_tokens=500, #  Set a reasonable limit to ensure the model doesn't generate excessively long responses.
+        #stop=["\n\n"] #  (optional) This will help in stopping the generation at the end of the answer.    
+        )
     
     system_prompts = (
         "You are an expert research assistant, tasked with providing accurate and concise answers "
