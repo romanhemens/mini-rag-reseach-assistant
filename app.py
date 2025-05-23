@@ -6,15 +6,25 @@ qa_chain = None
 
 def upload_pdf(file):
     global qa_chain
-    text = extract_text_from_pdf(file.name)
-    chunks = split_text(text)
-    qa_chain = build_rag_chain(chunks)
-    return "PDF processed. You can now ask questions!"
+    # Ensure the file path is accessible
+    if file is None:
+        return "Please upload a PDF file."
+    
+    try:
+        text = extract_text_from_pdf(file.name)
+        chunks = split_text(text)
+        qa_chain = build_rag_chain(chunks)
+        return "PDF processed. You can now ask questions!"
+    except Exception as e:
+        return f"Error processing PDF: {e}"
 
 def ask_question(question):
     if qa_chain:
-        response = qa_chain.invoke(question)
-        return response['result']
+        try:            
+            response = qa_chain.invoke({"input": question})
+            return response.get("answer", str(response))
+        except Exception as e:
+            return f"Error answering question: {e}"
     else:
         return "Please upload a PDF first."
 
