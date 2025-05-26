@@ -1,73 +1,77 @@
-import gradio as gr
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from werkzeug.utils import secure_filename
+import os
 from utils import extract_text_from_pdf, split_text, update_usage_metrics
 from rag_chain import build_rag_chain
 
+app = Flask(__name__)
+CORS(app)
+
+# Global variable to store the QA chain
 qa_chain = None
 
-# --- Gradio Functions --
-def upload_pdf(file):
+@app.route('/upload', methods=['POST'])
+def upload_pdf():
     global qa_chain
-    # Ensure the file path is accessible
-    if file is None:
-        return "Please upload a PDF file.", ""
+    
+    if 'file' not in request.files:
+        return jsonify({'message': 'No file part'}), 400
+        
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'message': 'No selected file'}), 400
+        
+    if file:
+        try:
+            # Save the file temporarily
+            filename = secure_filename(file.filename)
+            temp_path = os.path.join('/tmp', filename)
+            file.save(temp_path)
+            
+            # Process the PDF
+            text = extract_text_from_pdf(temp_path)
+            chunks = split_text(text)
+            qa_chain = build_rag_chain(chunks)
+            
+            # Clean up
+            os.remove(temp_path)
+            
+            return jsonify({'message': 'PDF processed successfully'}), 200
+            
+        except Exception as e:
+            return jsonify({'message': f'Error processing PDF: {str(e)}'}), 500
+
+@app.route('/ask', methods=['POST'])
+def ask_question():
+    global qa_chain
+    
+    if not qa_chain:
+        return jsonify({'message': 'Please upload a PDF first'}), 400
+        
+    data = request.get_json()
+    if not data or 'question' not in data:
+        return jsonify({'message': 'No question provided'}), 400
+        
+    question = data['question']
     
     try:
-        text = extract_text_from_pdf(file.name)
-        chunks = split_text(text)
-        qa_chain = build_rag_chain(chunks)
-        return "PDF processed. You can now ask questions!", ""
+        response = qa_chain.invoke({"input": question})
+        response_text = response.get("answer", str(response))
+        
+        # Estimate tokens used for the current interaction
+        estimated_tokens = len(question.split()) + len(response_text.split()) + 50
+        
+        # Update usage metrics
+        usage_status = update_usage_metrics(estimated_tokens)
+        
+        return jsonify({
+            'answer': response_text,
+            'usage_status': usage_status
+        }), 200
+        
     except Exception as e:
-        return f"Error processing PDF: {e}", ""
+        return jsonify({'message': f'Error answering question: {str(e)}'}), 500
 
-def ask_question(question):
-    if qa_chain:
-        try:            
-            response = qa_chain.invoke({"input": question})
-            response_text = response.get("answer", str(response))
-        
-            # Estimate tokens used for the current interaction
-            # This is a rough estimate based on word count. => use a proper tokenizer later
-            estimated_tokens = len(question.split()) + len(response_text.split()) + 50 # Add some overhead for prompt tokens
-            
-            # Update and get usage status from the helper in utils.py
-            usage_status = update_usage_metrics(estimated_tokens)
-            
-            print("DEBUG RESPONSE:", response_text)
-            return response_text, usage_status
-
-        except Exception as e:
-            return f"Error answering question: {e}"
-    else:
-        return "Please upload a PDF first."
-
-# --- Gradio Interface Setup using gr.Blocks ---
-with gr.Blocks(title="Mini-RAG Assistant") as demo:
-    # Define the output component for API usage status once
-    usage_display = gr.Markdown(label="API Usage Status", value=update_usage_metrics(0)) # Initialize with current status
-
-    with gr.Tab("Upload"):
-        gr.Markdown("Upload a PDF and process it for questions.")
-        upload_file_input = gr.File(file_types=[".pdf"], label="Upload Your PDF")
-        upload_output_text = gr.Textbox(label="Processing Status")
-        
-        # Link the upload function to the components
-        upload_file_input.upload(
-            fn=upload_pdf,
-            inputs=[upload_file_input],
-            outputs=[upload_output_text, usage_display] # Update both status text and usage display
-        )
-
-    with gr.Tab("Ask"):
-        gr.Markdown("Ask questions about the uploaded PDF.")
-        question_input = gr.Textbox(label="Ask a question")
-        answer_output = gr.Textbox(label="Answer")
-        
-        # Link the ask_question function to the components
-        question_input.submit(
-            fn=ask_question,
-            inputs=[question_input],
-            outputs=[answer_output, usage_display] # Update both answer and usage display
-        )
-
-# Launch the Gradio application
-demo.launch()
+if __name__ == '__main__':
+    app.run(debug=True)
