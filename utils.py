@@ -3,13 +3,19 @@ import fitz  # PyMuPDF
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
+
 import faiss
 import time
 from datetime import datetime, timedelta
 import os
+from document_store import DocumentStore
 # Load environment variables
 from dotenv import load_dotenv
 load_dotenv()
+
+# Initialize document store
+document_store = DocumentStore(os.getenv("MONGO_URI", "mongodb://localhost:27017"))
 
 # --- API Usage Tracking Variables ---
 # Define your API limits
@@ -29,6 +35,14 @@ token_count_day = 0
 last_day_reset_time = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
 def extract_text_from_pdf(pdf_path):
+    # Check if document already exists
+    file_hash = document_store.calculate_file_hash(pdf_path)
+    existing_doc = document_store.load_document(file_hash)
+    if existing_doc:
+        # Join the chunks back into text since the function expects to return text
+        return "\n".join(existing_doc[0])
+
+    # If document doesn't exist, process it
     doc = fitz.open(pdf_path)
     text = ""
     for page in doc:
@@ -51,6 +65,22 @@ def build_faiss_store(chunks, embeddings):
     )
     vectorstore.add_texts(chunks)
     return vectorstore
+
+def process_document(file_path: str):
+    """Process a document and store it if it's new."""
+    text = extract_text_from_pdf(file_path)
+    chunks = split_text(text)
+    
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={"device": "cpu"}
+    )
+    vectorstore = build_faiss_store(chunks, embeddings)
+    
+    # Store document if it's new
+    document_store.process_file(file_path, chunks, vectorstore)
+    
+    return chunks, vectorstore
 
 # --- Helper function to update and display usage metrics ---
 def update_usage_metrics(estimated_tokens_for_current_call=0):
