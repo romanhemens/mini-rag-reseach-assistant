@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
-from utils import extract_text_from_pdf, split_text, update_usage_metrics
+from utils import process_document, update_usage_metrics
 from rag_chain import build_rag_chain
 
 app = Flask(__name__)
@@ -29,9 +29,8 @@ def upload_pdf():
             temp_path = os.path.join('/tmp', filename)
             file.save(temp_path)
             
-            # Process the PDF
-            text = extract_text_from_pdf(temp_path)
-            chunks = split_text(text)
+            # Process the document (will use cached version if available)
+            chunks, vectorstore = process_document(temp_path)
             qa_chain = build_rag_chain(chunks)
             
             # Clean up

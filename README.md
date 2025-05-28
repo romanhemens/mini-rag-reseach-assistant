@@ -1,81 +1,61 @@
 # Mini RAG Research Assistant
 
-A powerful Research Assistant that uses RAG (Retrieval-Augmented Generation) to help you analyze and query PDF documents. This application combines the power of Groq's LLM with efficient document processing to provide accurate and context-aware responses to your questions.
+A lightweight Research Assistant using RAG (Retrieval-Augmented Generation) to answer questions about uploaded documents.
 
 ## Features
 
-- PDF document upload and processing
-- Intelligent text chunking and embedding
-- RAG-based question answering
-- Usage metrics tracking
-- RESTful API endpoints
-- Modern web interface
+- Document upload and processing
+- Efficient document caching using MongoDB and FAISS
+- Question answering using Groq LLM
+- API usage tracking and rate limiting
+- Secure document storage and retrieval
 
-## Prerequisites
+## Security Considerations
 
-- Python 3.8 or higher
-- pip (Python package manager)
-- Groq API key
+- All sensitive data (API keys, database credentials) are stored in `.env` file
+- MongoDB connection is local by default
+- Document processing includes hash verification
+- FAISS indices are stored locally with proper security measures
 
-## Installation
+## Setup
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/mini-rag-reseach-assistant.git
-cd mini-rag-reseach-assistant
-```
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Copy `.env-template` to `.env` and fill in your credentials:
+   ```bash
+   cp .env-template .env
+   ```
+4. Set up MongoDB locally or update the `MONGO_URI` in `.env`
+5. Run the application:
+   ```bash
+   python app.py
+   ```
 
-2. Create and activate a virtual environment (recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-```
+## Environment Variables
 
-3. Install the required dependencies:
-```bash
-pip install -r requirements.txt
-```
+Required environment variables in `.env`:
+- `GROQ_API_KEY`: Your Groq API key
+- `GROQ_MODEL_NAME`: The Groq model to use
+- `MONGO_URI`: MongoDB connection string (default: mongodb://localhost:27017)
+- `REQUEST_LIMIT_MINUTE`: API request limit per minute
+- `TOKEN_LIMIT_MINUTE`: Token limit per minute
+- `REQUEST_LIMIT_DAY`: API request limit per day
+- `TOKEN_LIMIT_DAY`: Token limit per day
 
-4. Set up environment variables:
-```bash
-cp .env-template .env
-```
-Edit the `.env` file and add your Groq API key and other configuration values.
+## Project Structure
 
-## Running the Application
-
-1. Start the backend server:
-```bash
-python app.py
-```
-The server will start on `http://localhost:5000`
-
-2. In a separate terminal, start the frontend development server:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-The frontend will be available at `http://localhost:5173`
-
-## API Endpoints
-
-- `POST /upload`: Upload a PDF file for processing
-- `POST /ask`: Ask questions about the uploaded document
-
-## Usage Limits
-
-The application implements rate limiting to manage API usage:
-- Requests per minute
-- Tokens per minute
-- Requests per day
-- Tokens per day
-
-These limits can be configured in the `.env` file.
+- `app.py`: Main Flask application
+- `rag_chain.py`: RAG pipeline implementation
+- `utils.py`: Utility functions for document processing
+- `document_store.py`: Document storage and retrieval
+- `frontend/`: Frontend application files
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Feel free to submit issues and enhancement requests!
 
 ## License
 
