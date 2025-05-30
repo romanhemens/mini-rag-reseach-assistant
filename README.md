@@ -74,9 +74,43 @@ Required environment variables in `.env`:
 - `frontend/Dockerfile`: Frontend Docker configuration
 - `docker-compose.yml`: Docker services orchestration
 
+## TODO / Roadmap
+
+Here are some features and improvements planned for future versions:
+
+### Core Features
+- [ ] Support multi-document querying (merge multiple PDFs into a single context)
+- [ ] Chunk size and overlap tuning for better embedding performance
+- [ ] Add support for other document types (e.g., `.docx`, `.txt`)
+
+### Data & Storage
+- [ ] Add deduplication to avoid re-uploading the same file
+- [ ] Move from FAISS to a persistent vector DB (e.g., ChromaDB, Qdrant, Weaviate)
+- [ ] Store embeddings alongside metadata in the DB
+
+### 🔍 Search & Retrieval
+- [ ] Hybrid search (vector + keyword-based scoring)
+- [ ] Re-ranking answers using an LLM (e.g., via Groq or OpenAI)
+
+### Frontend / UX
+- [ ] Drag & drop file upload
+- [ ] Highlight source chunks used in answers
+- [ ] Document preview after upload
+
+### Testing & Dev Experience
+- [ ] Add backend unit tests (e.g., using Pytest)
+- [ ] Add integration tests for upload + query
+- [ ] Set up GitHub Actions for CI/CD
+
+### Stretch Goals / Ideas
+- [ ] Real-time collaboration / shared documents
+- [ ] User auth (e.g., email or GitHub OAuth)
+- [ ] Embedding model selection (e.g., OpenAI vs HuggingFace)
+
 ## Contributing
 
-Feel free to submit issues and enhancement requests!
+Contributions are welcome! Feel free to fork the repo and submit a pull request.  
+Check out [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines and ideas on what to work on.
 
 ## License
 
