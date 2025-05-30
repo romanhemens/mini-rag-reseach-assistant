@@ -19,6 +19,8 @@ A lightweight Research Assistant using RAG (Retrieval-Augmented Generation) to a
 
 ## Setup
 
+### Option 1: Local Setup
+
 1. Clone the repository
 2. Install dependencies:
    ```bash
@@ -33,6 +35,22 @@ A lightweight Research Assistant using RAG (Retrieval-Augmented Generation) to a
    ```bash
    python app.py
    ```
+
+### Option 2: Docker Setup
+
+1. Clone the repository
+2. Copy `.env-template` to `.env` and fill in your credentials:
+   ```bash
+   cp .env-template .env
+   ```
+3. Make sure MongoDB is running locally
+4. Build and run the containers:
+   ```bash
+   docker-compose up --build
+   ```
+   The application will be available at:
+   - Frontend: http://localhost:5173
+   - Backend: http://localhost:5000
 
 ## Environment Variables
 
@@ -52,6 +70,9 @@ Required environment variables in `.env`:
 - `utils.py`: Utility functions for document processing
 - `document_store.py`: Document storage and retrieval
 - `frontend/`: Frontend application files
+- `Dockerfile.backend`: Backend Docker configuration
+- `frontend/Dockerfile`: Frontend Docker configuration
+- `docker-compose.yml`: Docker services orchestration
 
 ## Contributing
 
