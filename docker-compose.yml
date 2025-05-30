@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - ./faiss_indices:/app/faiss_indices
+    environment:
+      - MONGO_URI=mongodb://host.docker.internal:27017
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:5000
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge 
